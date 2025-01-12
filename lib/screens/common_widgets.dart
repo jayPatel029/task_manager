@@ -12,6 +12,7 @@ class TextfieldHelper extends StatefulWidget {
   final TextInputType? textInputType;
   final bool? obscureText;
   final Function(String?)? onChanged;
+  final Function()? onTap;
   final bool? enabled;
   final TextEditingController controller;
   final int? maxLines;
@@ -29,6 +30,7 @@ class TextfieldHelper extends StatefulWidget {
       this.textInputType,
       this.obscureText,
       this.onChanged,
+      this.onTap,
       this.onSaved,
       required this.controller,
       this.suffix,
@@ -65,6 +67,7 @@ class _TextfieldHelperState extends State<TextfieldHelper> {
         ),
         onFieldSubmitted: widget.onSaved,
         onChanged: widget.onChanged,
+        onTap: widget.onTap,
         decoration: inpurdecorationTwo.copyWith(
           prefixIcon: widget.prefix,
           suffixIcon: widget.suffix,
@@ -97,21 +100,6 @@ InputDecoration inpurdecorationTwo = InputDecoration(
   ),
 );
 
-// class Task {
-//   final String title;
-//   final String description;
-//   final String dueDate;
-//   final String priority;
-//   bool isComplete;
-//
-//   Task({
-//     required this.title,
-//     required this.description,
-//     required this.dueDate,
-//     required this.priority,
-//     this.isComplete = false,
-//   });
-// }
 
 class TaskCard extends StatelessWidget {
   final Task task;

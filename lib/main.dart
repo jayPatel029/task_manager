@@ -48,15 +48,10 @@ class AuthGate extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // TODO: implement build
     final authState = ref.watch(authNotifierProvider);
-
-    if (authState is AuthLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    } else if (authState is AuthSuccess) {
+    if (authState is AuthSuccess) {
       return HomeScreen();
     } else {
-      return AuthScreen();
+      return HomeScreen();
     }
   }
 }

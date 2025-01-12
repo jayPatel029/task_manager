@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
- import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:task_manager_bloc/screens/home/task_details_screen.dart';
 import 'package:task_manager_bloc/services/task/task_notifier.dart';
 
@@ -7,7 +8,6 @@ import '../../services/task.dart';
 import '../../services/task/task_state.dart';
 import '../common_widgets.dart';
 import 'add_task_screen.dart';
-
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -19,6 +19,14 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text("Tasks"),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: () {
+              _showFilterDialog(context, ref);
+            },
+          ),
+        ],
       ),
       body: Builder(
         builder: (context) {
@@ -34,6 +42,7 @@ class HomeScreen extends ConsumerWidget {
               ),
             );
           } else if (taskState is TaskLoadedState) {
+
             final tasks = taskState.tasks;
 
             if (tasks.isEmpty) {
@@ -52,10 +61,7 @@ class HomeScreen extends ConsumerWidget {
                   task: tasks[index],
                   onTap: () => _navigateToDetails(context, tasks[index]),
                   onToggleComplete: () {
-                    // final updatedTask = tasks[index].copyWith(
-                    //   isComplete: !tasks[index].isComplete,
-                    // );
-                    // ref.read(taskNotifierProvider.notifier).updateTask(updatedTask);
+                    _toggleTaskCompletion(context, ref, tasks[index]);
                   },
                 );
               },
@@ -96,4 +102,67 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+
+  Future<void> _toggleTaskCompletion(
+      BuildContext context, WidgetRef ref, Task task) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? isComplete = prefs.getBool(task.id) ?? task.isComplete;
+    bool updatedState = !isComplete;
+    await prefs.setBool(task.id, updatedState);
+    ref.read(taskNotifierProvider.notifier).updateTask(task.copyWith(isComplete: updatedState));
+  }
+
+
+  Future<void> _showFilterDialog(BuildContext context, WidgetRef ref) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String currentPriority = prefs.getString('selected_priority') ?? 'All';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Filter Tasks"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: const Text("All"),
+                onTap: () async {
+                  await ref.read(taskNotifierProvider.notifier).setPriorityFilter('All');
+                  Navigator.pop(context);
+                },
+                selected: currentPriority == 'All',
+              ),
+              ListTile(
+                title: const Text("High Priority"),
+                onTap: () async {
+                  await ref.read(taskNotifierProvider.notifier).setPriorityFilter('High');
+                  Navigator.pop(context);
+                },
+                selected: currentPriority == 'High',
+              ),
+              ListTile(
+                title: const Text("Medium Priority"),
+                onTap: () async {
+                  await ref.read(taskNotifierProvider.notifier).setPriorityFilter('Medium');
+                  Navigator.pop(context);
+                },
+                selected: currentPriority == 'Medium',
+              ),
+              ListTile(
+                title: const Text("Low Priority"),
+                onTap: () async {
+                  await ref.read(taskNotifierProvider.notifier).setPriorityFilter('Low');
+                  Navigator.pop(context);
+                },
+                selected: currentPriority == 'Low',
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
 }

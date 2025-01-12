@@ -37,4 +37,29 @@ class Task {
       isComplete: map['isComplete'],
     );
   }
+
+  // CopyWith method to clone a Task with new values for specific fields
+  Task copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? dueDate,
+    String? priority,
+    bool? isComplete,
+  }) {
+    return Task(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      dueDate: dueDate ?? this.dueDate,
+      priority: priority ?? this.priority,
+      isComplete: isComplete ?? this.isComplete,
+    );
+  }
+
+  // toString method for easier debugging and logging
+  @override
+  String toString() {
+    return 'Task(id: $id, title: $title, description: $description, dueDate: $dueDate, priority: $priority, isComplete: $isComplete)';
+  }
 }

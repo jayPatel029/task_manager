@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:task_manager_bloc/services/task/task_service.dart';
 import 'package:task_manager_bloc/services/task/task_state.dart';
 import '../task.dart';
 
 class TaskNotifier extends StateNotifier<TaskState> {
   final TaskService taskService;
+  String? selectedPriority;
 
   TaskNotifier(this.taskService) : super(TaskLoadingState()) {
     fetchTasks();
@@ -14,11 +16,38 @@ class TaskNotifier extends StateNotifier<TaskState> {
     state = TaskLoadingState();
     try {
       final tasks = await taskService.getTasks();
-      state = TaskLoadedState(tasks);
+      final filteredTasks = await _filterTasks(tasks);
+      state = TaskLoadedState(filteredTasks);
       print("Tasks loaded successfully: ${tasks.length} tasks");
     } catch (e) {
       state = TaskErrorState('Failed to load tasks: $e');
     }
+  }
+
+   Future<void> setPriorityFilter(String priority) async {
+    selectedPriority = priority;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selected_priority', priority);
+    await fetchTasks(); // Refresh task list with the new filter
+  }
+
+   Future<List<Task>> _filterTasks(List<Task> tasks) async {
+    if (selectedPriority == null || selectedPriority == 'All') {
+      return tasks; // If no filter or 'All' is selected, return all tasks
+    }
+
+    tasks.sort((a, b) {
+      if (a.priority == selectedPriority && b.priority != selectedPriority) {
+        return -1;
+      } else if (a.priority != selectedPriority &&
+          b.priority == selectedPriority) {
+        return 1;
+      } else {
+        return 0; //
+      }
+    });
+
+    return tasks;
   }
 
   /// Add a new task
