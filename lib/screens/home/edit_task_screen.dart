@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_manager_bloc/screens/home/home_screen.dart';
 
-import '../../bloc/task_bloc.dart';
-import '../../bloc/task_event.dart';
 import '../../services/task.dart';
-import '../../services/task_service.dart';
+import '../../services/task/task_notifier.dart';
 import '../common_widgets.dart';
 
-class EditTaskScreen extends StatefulWidget {
+class EditTaskScreen extends ConsumerStatefulWidget {
   final Task task;
 
   const EditTaskScreen({
@@ -20,7 +19,7 @@ class EditTaskScreen extends StatefulWidget {
   _EditTaskScreenState createState() => _EditTaskScreenState();
 }
 
-class _EditTaskScreenState extends State<EditTaskScreen> {
+class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
   late TextEditingController titleController;
   late TextEditingController descriptionController;
   late TextEditingController dueDateController;
@@ -36,7 +35,6 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
     priority = widget.task.priority;
   }
 
-  final TaskService _taskService = TaskService(TaskRepository());
 
   void saveTask() async {
     if (titleController.text.isNotEmpty &&
@@ -51,17 +49,14 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
         isComplete: widget.task.isComplete,
       );
 
-      // Update task using TaskService
-      await _taskService.updateTask(updatedTask);
+      // Use Riverpod to update the task
+      await ref.read(taskNotifierProvider.notifier).updateTask(updatedTask);
 
-      // After updating, home
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
-          (val) => false);
+      // Navigate back after updating
+      Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please fill in all fields")),
+        const SnackBar(content: Text("Please fill in all fields")),
       );
     }
   }

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_manager_bloc/screens/home/edit_task_screen.dart';
 
 import '../../services/task.dart';
-import '../../services/task_service.dart';
+import '../../services/task/task_notifier.dart';
 import '../common_widgets.dart';
 
-class TaskDetailsScreen extends StatelessWidget {
+class TaskDetailsScreen extends ConsumerWidget {
   final Task task;
 
   TaskDetailsScreen({
@@ -14,24 +15,25 @@ class TaskDetailsScreen extends StatelessWidget {
   }) : super(key: key);
 
   // Reference to TaskService for task operations
-  final TaskService _taskService = TaskService(TaskRepository());
 
   // Delete task function
-  void deleteTask(BuildContext context) async {
+
+  // Delete task function using Riverpod
+  Future<void> deleteTask(BuildContext context, WidgetRef ref) async {
     final bool? confirmDelete = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Delete Task"),
-          content: Text("Are you sure you want to delete this task?"),
+          title: const Text("Delete Task"),
+          content: const Text("Are you sure you want to delete this task?"),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text("Cancel"),
+              child: const Text("Cancel"),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: Text("Delete"),
+              child: const Text("Delete"),
             ),
           ],
         );
@@ -39,13 +41,13 @@ class TaskDetailsScreen extends StatelessWidget {
     );
 
     if (confirmDelete == true) {
-      await _taskService.deleteTask(task.id);
+      await ref.read(taskNotifierProvider.notifier).deleteTask(task.id);
       Navigator.pop(context); // Go back to the previous screen after deletion
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -132,8 +134,7 @@ class TaskDetailsScreen extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                //delete task
-                deleteTask(context);
+                deleteTask(context, ref);
               },
               child: Text(
                 "Delete",
