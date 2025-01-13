@@ -1,16 +1,22 @@
+/*
+* add / edit from here
+*
+* **/
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:task_manager_bloc/screens/home/home_screen.dart';
 
 import '../../services/task.dart';
 import '../../services/task/task_notifier.dart';
 import '../common_widgets.dart';
 
-class TaskFormScreen extends ConsumerStatefulWidget {
+class AddTaskNew extends ConsumerStatefulWidget {
   final bool isEdit;
   final Task? task;
 
-  const TaskFormScreen({
+  const AddTaskNew({
     Key? key,
     required this.isEdit,
     this.task,
@@ -20,26 +26,26 @@ class TaskFormScreen extends ConsumerStatefulWidget {
   _TaskFormScreenState createState() => _TaskFormScreenState();
 }
 
-class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
-  late TextEditingController titleController;
-  late TextEditingController descriptionController;
-  late TextEditingController dueDateController;
+class _TaskFormScreenState extends ConsumerState<AddTaskNew> {
+  late TextEditingController titleCont;
+  late TextEditingController descCont;
+  late TextEditingController dueDateCont;
   String priority = "Low";
   bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    titleController = TextEditingController(
+    titleCont = TextEditingController(
         text: widget.isEdit ? widget.task?.title ?? "" : "");
-    descriptionController = TextEditingController(
+    descCont = TextEditingController(
         text: widget.isEdit ? widget.task?.description ?? "" : "");
-    dueDateController = TextEditingController(
+    dueDateCont = TextEditingController(
         text: widget.isEdit ? widget.task?.dueDate ?? "" : "");
     priority = widget.isEdit ? widget.task?.priority ?? "Low" : "Low";
   }
 
-  Future<void> _selectDueDate(BuildContext context) async {
+  Future<void> _dateSelector(BuildContext context) async {
     DateTime currentDate = DateTime.now();
 
     DateTime? selectedDate = await showDatePicker(
@@ -52,15 +58,15 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     if (selectedDate != null) {
       String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
       setState(() {
-        dueDateController.text = formattedDate;
+        dueDateCont.text = formattedDate;
       });
     }
   }
 
   Future<void> saveTask() async {
-    if (titleController.text.isEmpty ||
-        descriptionController.text.isEmpty ||
-        dueDateController.text.isEmpty) {
+    if (titleCont.text.isEmpty ||
+        descCont.text.isEmpty ||
+        dueDateCont.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text("Please fill in all fields"),
@@ -71,26 +77,25 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     }
 
     setState(() => isLoading = true);
-
+// to update
     if (widget.isEdit) {
-      // Update Task
-      final updatedTask = Task(
+       final updatedTask = Task(
         id: widget.task!.id,
-        title: titleController.text.trim(),
-        description: descriptionController.text.trim(),
-        dueDate: dueDateController.text.trim(),
+        title: titleCont.text.trim(),
+        description: descCont.text.trim(),
+        dueDate: dueDateCont.text.trim(),
         priority: priority,
         isComplete: widget.task!.isComplete,
       );
 
       await ref.read(taskNotifierProvider.notifier).updateTask(updatedTask);
     } else {
-      // Add New Task
-      final newTask = Task(
+// to add
+       final newTask = Task(
         id: "",
-        title: titleController.text.trim(),
-        description: descriptionController.text.trim(),
-        dueDate: dueDateController.text.trim(),
+        title: titleCont.text.trim(),
+        description: descCont.text.trim(),
+        dueDate: dueDateCont.text.trim(),
         priority: priority,
       );
 
@@ -98,15 +103,17 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     }
 
     setState(() => isLoading = false);
-    Navigator.pop(context);
-  }
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => HomeScreen()), (v) => false);}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue[600],
-        title: Text(widget.isEdit ? "Edit Task" : "Add Task", style: TextStyle(fontWeight: FontWeight.w600),),
+        title: Text(
+          widget.isEdit ? "Edit Task" : "Add Task",
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
         elevation: 2,
       ),
       body: Stack(
@@ -117,35 +124,31 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title field
-                  _buildLabel("Title"),
-                  _buildTextField(
-                    controller: titleController,
+                   tfLable("Title"),
+                  buildTf(
+                    controller: titleCont,
                     hintText: "Enter task title",
                   ),
                   const SizedBox(height: 16),
 
-                  // Description field
-                  _buildLabel("Description"),
-                  _buildTextField(
-                    controller: descriptionController,
+                   tfLable("Description"),
+                  buildTf(
+                    controller: descCont,
                     hintText: "Enter task description",
                     maxLines: 3,
                   ),
                   const SizedBox(height: 16),
 
-                  // Due Date field
-                  _buildLabel("Due Date"),
-                  _buildTextField(
-                    controller: dueDateController,
+                   tfLable("Due Date"),
+                  buildTf(
+                    controller: dueDateCont,
                     hintText: "Select date",
                     readOnly: true,
-                    onTap: () => _selectDueDate(context),
+                    onTap: () => _dateSelector(context),
                   ),
                   const SizedBox(height: 16),
 
-                  // Priority Dropdown
-                  _buildLabel("Priority"),
+                   tfLable("Priority"),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     value: priority,
@@ -159,12 +162,11 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
                         });
                       }
                     },
-                    decoration: _buildInputDecoration("Priority"),
+                    decoration: inputDecoDD("Priority"),
                   ),
                   const SizedBox(height: 32),
 
-                  // Submit Button
-                  Center(
+                   Center(
                     child: ElevatedButton(
                       onPressed: isLoading ? null : saveTask,
                       style: ElevatedButton.styleFrom(
@@ -177,17 +179,17 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
                       ),
                       child: isLoading
                           ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
                           : Text(
-                        widget.isEdit ? "Update Task" : "Add Task",
-                        style: const TextStyle(color: Colors.white),
-                      ),
+                              widget.isEdit ? "Update Task" : "Add Task",
+                              style: const TextStyle(color: Colors.white),
+                            ),
                     ),
                   ),
                 ],
@@ -208,7 +210,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     );
   }
 
-  Widget _buildLabel(String text) {
+  Widget tfLable(String text) {
     return Text(
       text,
       style: TextStyle(
@@ -219,7 +221,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     );
   }
 
-  Widget _buildTextField({
+  Widget buildTf({
     required TextEditingController controller,
     String hintText = "",
     int maxLines = 1,
@@ -235,12 +237,12 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     );
   }
 
-  InputDecoration _buildInputDecoration(String label) {
+  InputDecoration inputDecoDD(String label) {
     return InputDecoration(
       labelText: label,
       labelStyle: TextStyle(color: Colors.blue[600]),
       contentPadding:
-      const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+          const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
       fillColor: Colors.white,
       filled: true,
       focusedBorder: OutlineInputBorder(

@@ -1,16 +1,21 @@
+/*
+* display all tasks
+* *sort => date and priority
+* *add task from here
+* *build sections acc. to date
+* **/
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:task_manager_bloc/screens/home/add_task_screen_new.dart';
 import 'package:task_manager_bloc/screens/home/task_details_screen.dart';
-import 'package:task_manager_bloc/services/auth/auth_notifier.dart';
-import 'package:task_manager_bloc/services/task/task_notifier.dart';
+ import 'package:task_manager_bloc/services/task/task_notifier.dart';
 
 import '../../services/task.dart';
 import '../../services/task/task_state.dart';
 import '../common_widgets.dart';
-import 'add_task_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -69,39 +74,23 @@ class HomeScreen extends ConsumerWidget {
             return ListView(
               children: [
                 if (sortedTasks['past']!.isNotEmpty) ...[
-                  _buildSectionHeader("🔥 Overdue"),
-                  ...sortedTasks['past']!.map((task) => _buildTaskCard(context, task, ref)),
+                  _sectionHead("🔥 Overdue"),
+                  ...sortedTasks['past']!.map((task) => _taskCard(context, task, ref)),
                 ],
                 if (sortedTasks['today']!.isNotEmpty) ...[
-                  _buildSectionHeader("🌟 Today"),
-                  ...sortedTasks['today']!.map((task) => _buildTaskCard(context, task, ref)),
+                  _sectionHead("🌟 Today"),
+                  ...sortedTasks['today']!.map((task) => _taskCard(context, task, ref)),
                 ],
                 if (sortedTasks['tomorrow']!.isNotEmpty) ...[
-                  _buildSectionHeader("⏳ Tomorrow"),
-                  ...sortedTasks['tomorrow']!.map((task) => _buildTaskCard(context, task, ref)),
+                  _sectionHead("⏳ Tomorrow"),
+                  ...sortedTasks['tomorrow']!.map((task) => _taskCard(context, task, ref)),
                 ],
                 if (sortedTasks['upcoming']!.isNotEmpty) ...[
-                  _buildSectionHeader("📅 Upcoming"),
-                  ...sortedTasks['upcoming']!.map((task) => _buildTaskCard(context, task, ref)),
+                  _sectionHead("📅 Upcoming"),
+                  ...sortedTasks['upcoming']!.map((task) => _taskCard(context, task, ref)),
                 ],
               ],
             );
-
-
-            // return ListView.builder(
-            //   itemCount: tasks.length,
-            //   itemBuilder: (context, index) {
-            //     return TaskCard(
-            //       task: tasks[index],
-            //       onTap: () => _navigateToDetails(context, tasks[index]),
-            //       onToggleComplete: () {
-            //         _toggleTaskCompletion(context, ref, tasks[index]);
-            //       },
-            //     );
-            //   },
-            // );
-            //
-
 
           } else {
             return const SizedBox.shrink();
@@ -109,7 +98,7 @@ class HomeScreen extends ConsumerWidget {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _navigateToAddTask(context, ref),
+        onPressed: () => _gotoAddTask(context, ref),
         icon: const Icon(
           Icons.add_rounded,
           color: Colors.white,
@@ -159,7 +148,7 @@ class HomeScreen extends ConsumerWidget {
     };
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _sectionHead(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Text(
@@ -172,10 +161,10 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
-  Widget _buildTaskCard(BuildContext context, Task task, WidgetRef ref) {
+  Widget _taskCard(BuildContext context, Task task, WidgetRef ref) {
     return TaskCard(
       task: task,
-      onTap: () => _navigateToDetails(context, task),
+      onTap: () => _gotoDetails(context, task),
       onToggleComplete: () {
         _toggleTaskCompletion(context, ref, task);
       },
@@ -184,7 +173,7 @@ class HomeScreen extends ConsumerWidget {
 
 
 
-  void _navigateToDetails(BuildContext context, Task task) {
+  void _gotoDetails(BuildContext context, Task task) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -193,12 +182,12 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _navigateToAddTask(BuildContext context, WidgetRef ref) {
+  void _gotoAddTask(BuildContext context, WidgetRef ref) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) =>
-            TaskFormScreen(isEdit: false),
+            const AddTaskNew(isEdit: false),
         //     AddTaskScreen(
         //   onAddTask: (newTask) async {
         //     await ref.read(taskNotifierProvider.notifier).addTask(newTask);

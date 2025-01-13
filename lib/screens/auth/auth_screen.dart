@@ -1,39 +1,42 @@
-/*
-* email pass,
-*
-* login with google,aple,fb
-* **/
-
-
-
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:task_manager_bloc/services/auth/auth_notifier.dart';
-
+import '../../services/auth/auth_notifier.dart';
 import '../../services/auth/auth_state.dart';
 import '../common_widgets.dart';
 
-class AuthScreen extends ConsumerWidget {
+class AuthScreen extends ConsumerStatefulWidget {
   AuthScreen({super.key});
 
-  TextEditingController emailCont =
-      TextEditingController(text: "jaypatel@gmail.com");
+  @override
+  ConsumerState<AuthScreen> createState() => _AuthScreenState();
+}
 
-  TextEditingController passCont = TextEditingController(text: "pass1234");
-  void showMessage(BuildContext context, String message, Color color) {
+class _AuthScreenState extends ConsumerState<AuthScreen> {
+  final TextEditingController emailCont = TextEditingController(text: "jaypatel@gmail.com");
+  final TextEditingController passCont = TextEditingController(text: "pass1234");
+  bool showPass = false;
+
+  void showTopSnackBar(BuildContext context, String message, {Color? color}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: color,
-        duration: Duration(seconds: 3),
+        backgroundColor: color ?? Colors.red,
+        // behavior: SnackBarBehavior.,
+        // margin: const EdgeInsets.only(top: 20, left: 16, right: 16),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
+
+    if (authState is AuthFailure) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showTopSnackBar(context, "Error Logging in!");
+      });
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -43,18 +46,18 @@ class AuthScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                height: 150,
-              ),
-              Center(
+              const SizedBox(height: 150),
+
+               Center(
                 child: Icon(
                   Icons.login_rounded,
                   color: Colors.blue[600],
                   size: 100,
                 ),
               ),
-              SizedBox(height: 20),
-              Center(
+              const SizedBox(height: 10),
+
+               const Center(
                 child: Text(
                   "Login",
                   style: TextStyle(
@@ -64,121 +67,178 @@ class AuthScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              SizedBox(height: 40),
+              const SizedBox(height: 30),
 
-              // Email Text and Field
-              Text(
+                 Text(
                 "Email",
                 style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF004c6d)), // Blue for labels
-              ),
-              SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 5,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: primDB,
                 ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                decoration: inputDece(),
                 child: TextfieldHelper(
                   textInputType: TextInputType.emailAddress,
                   hintText: 'Enter your email',
                   controller: emailCont,
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-              // Password Text and Field
-              Text(
+                 Text(
                 "Password",
                 style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF004c6d)),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: primDB,
+                ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 5,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: TextfieldHelper(
-                  obscureText: true,
-                  hintText: 'Enter your password',
+                decoration: inputDece(),
+                child: TextField(
+                  obscureText: !showPass,
                   controller: passCont,
+                  decoration: InputDecoration(
+                    hintText: 'Enter your password',
+                    border: InputBorder.none,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        showPass ? Icons.visibility : Icons.visibility_off,
+                        color: Colors.grey[600],
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          showPass = !showPass;
+                        });
+                      },
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
                 ),
               ),
-              SizedBox(height: 30),
 
-              // Login Button
-              Center(
+
+              const SizedBox(height: 30),
+
+               Center(
                 child: ElevatedButton(
                   onPressed: () {
                     final email = emailCont.text.trim();
                     final password = passCont.text.trim();
-                    ref
-                        .read(authNotifierProvider.notifier)
-                        .login(email, password);
+                    ref.read(authNotifierProvider.notifier).login(email, password);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue[600],
-                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                    textStyle: TextStyle(fontSize: 16, color: Colors.white),
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    textStyle: const TextStyle(fontSize: 16, color: Colors.white),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     ),
                   ),
                   child: authState is AuthLoading
-                      ? CircularProgressIndicator(
-                          color: Colors.white,
-                        )
+                      ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
-                          "Login",
-                          style: TextStyle(
-                              color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
+                    "Login",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
+              const SizedBox(height: 20),
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      "Or continue with",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
 
-              // Error/Success Messages
-              if (authState is AuthFailure)
-                Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: Center(
-                    child: Text(
-                      "Failed to login",
-                      style: const TextStyle(color: Colors.red),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.red, width: 2), 
+                            borderRadius: BorderRadius.circular(50), 
+                          ),
+                          child: IconButton(
+                            onPressed: () {
+                              showTopSnackBar(context, "Google login coming soon!", color: Colors.blue[600]);
+
+                            },
+                            icon: const Icon(Icons.g_mobiledata, color: Colors.red),
+                            iconSize: 40,
+                            tooltip: "Google Login",
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                         Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black, width: 2),  
+                            borderRadius: BorderRadius.circular(50),  
+                          ),
+                          child: IconButton(
+                            onPressed: () {
+                              showTopSnackBar(context, "Apple login coming soon!", color: Colors.blue[600]);
+
+                            },
+                            icon: const Icon(Icons.apple, color: Colors.black),
+                            iconSize: 40,
+                            tooltip: "Apple Login",
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                  ],
                 ),
-              if (authState is AuthSuccess)
-                Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: Center(
-                    child: Text(
-                      'Welcome, ${emailCont.text}',
-                      style: const TextStyle(color: Colors.green),
-                    ),
-                  ),
-                ),
+              ),
+              // if (authState is AuthFailure)
+              //
+              //   // const Padding(
+              //   //   padding: EdgeInsets.only(top: 20.0),
+              //   //   child: Center(
+              //   //     child: Text(
+              //   //       "Failed to login",
+              //   //       style: TextStyle(color: Colors.red),
+              //   //     ),
+              //   //   ),
+              //   // ),
+              // if (authState is AuthSuccess)
+              //   Padding(
+              //     padding: const EdgeInsets.only(top: 20.0),
+              //     child: Center(
+              //       child: Text(
+              //         'Welcome, ${emailCont.text}',
+              //         style: const TextStyle(color: Colors.green),
+              //       ),
+              //     ),
+              //   ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  BoxDecoration inputDece() {
+    return BoxDecoration(
+      color: Colors.grey[100],
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: const [
+        BoxShadow(
+          color: Colors.black12,
+          blurRadius: 5,
+          offset: Offset(0, 2),
+        ),
+      ],
     );
   }
 }

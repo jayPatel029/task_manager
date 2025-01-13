@@ -18,6 +18,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
     fetchTasks();
   }
 
+  // todo refresh list after oprs edit / add
   Future<void> fetchTasks() async {
     state = TaskLoadingState();
     try {
@@ -34,7 +35,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
     selectedPriority = priority;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('selected_priority', priority);
-    await fetchTasks(); // Refresh task list with the new filter
+    await fetchTasks();
   }
 
    Future<List<Task>> _filterTasks(List<Task> tasks) async {
@@ -59,7 +60,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
    Future<void> addTask(Task task) async {
     try {
       await taskService.addTask(task);
-      await fetchTasks(); // Refresh task list
+      await fetchTasks();
     } catch (e) {
       state = TaskErrorState('Failed to add task: $e');
     }
@@ -68,7 +69,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
    Future<void> updateTask(Task task) async {
     try {
       await taskService.updateTask(task);
-      await fetchTasks(); //
+      await fetchTasks();
     } catch (e) {
       state = TaskErrorState('Failed to update task: $e');
     }
@@ -77,7 +78,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
    Future<void> deleteTask(String taskId) async {
     try {
       await taskService.deleteTask(taskId);
-      await fetchTasks(); //
+      await fetchTasks();
     } catch (e) {
       state = TaskErrorState('Failed to delete task: $e');
     }
