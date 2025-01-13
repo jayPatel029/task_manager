@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_manager_bloc/screens/home/add_task_screen_new.dart';
 import 'package:task_manager_bloc/screens/home/edit_task_screen.dart';
 
 import '../../services/task.dart';
@@ -51,8 +52,9 @@ class TaskDetailsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: Text("Task Details"),
+        backgroundColor: Colors.blue[600], // Blue background for AppBar
+        title: const Text("Task Details"),
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -61,12 +63,20 @@ class TaskDetailsScreen extends ConsumerWidget {
           children: [
             Text(
               task.title,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[700], // Blue title text
+              ),
             ),
             SizedBox(height: 16),
             Text(
               "Description:",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.blue[600], // Blue description header
+              ),
             ),
             Text(
               task.description,
@@ -75,7 +85,11 @@ class TaskDetailsScreen extends ConsumerWidget {
             SizedBox(height: 16),
             Text(
               "Due Date:",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.blue[600],
+              ),
             ),
             Text(
               task.dueDate,
@@ -84,7 +98,11 @@ class TaskDetailsScreen extends ConsumerWidget {
             SizedBox(height: 16),
             Text(
               "Priority:",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.blue[600],
+              ),
             ),
             Text(
               task.priority,
@@ -95,7 +113,11 @@ class TaskDetailsScreen extends ConsumerWidget {
               children: [
                 Text(
                   "Status:",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue[600],
+                  ),
                 ),
                 SizedBox(width: 8),
                 Text(
@@ -111,7 +133,7 @@ class TaskDetailsScreen extends ConsumerWidget {
         ),
       ),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(color: Colors.white),
+        color: Colors.white,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -120,28 +142,36 @@ class TaskDetailsScreen extends ConsumerWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => EditTaskScreen(task: task),
+                    builder: (context) => TaskFormScreen(isEdit: true, task: task,),
                   ),
                 );
               },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue[600], padding: EdgeInsets.symmetric(vertical: 14, horizontal: 24), // Blue color for Edit button text
+
+              ),
               child: Text(
                 "Edit",
                 style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: Colors.black),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
             ),
             TextButton(
               onPressed: () {
                 deleteTask(context, ref);
               },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.redAccent, padding: EdgeInsets.symmetric(vertical: 14, horizontal: 24), // Red color for Delete button text
+
+              ),
               child: Text(
                 "Delete",
                 style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: Colors.redAccent),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
             ),
           ],

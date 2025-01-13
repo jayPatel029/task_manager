@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:task_manager_bloc/screens/home/add_task_screen_new.dart';
 import 'package:task_manager_bloc/screens/home/task_details_screen.dart';
+import 'package:task_manager_bloc/services/auth/auth_notifier.dart';
 import 'package:task_manager_bloc/services/task/task_notifier.dart';
 
 import '../../services/task.dart';
@@ -19,6 +22,8 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text("Tasks"),
         centerTitle: true,
+        backgroundColor: Colors.blue[600],
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
@@ -32,40 +37,72 @@ class HomeScreen extends ConsumerWidget {
         builder: (context) {
           if (taskState is TaskLoadingState) {
             return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF676bF3)),
+              child: CircularProgressIndicator(
+                color: Colors.blueAccent,
+              ),
             );
           } else if (taskState is TaskErrorState) {
             return Center(
               child: Text(
                 taskState.message,
-                style: const TextStyle(color: Colors.red),
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             );
           } else if (taskState is TaskLoadedState) {
-
             final tasks = taskState.tasks;
 
             if (tasks.isEmpty) {
               return const Center(
                 child: Text(
                   "No tasks available. Add a task to get started.",
-                  style: TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
               );
             }
+              final sortedTasks = _sortTasksByDate(tasks);
 
-            return ListView.builder(
-              itemCount: tasks.length,
-              itemBuilder: (context, index) {
-                return TaskCard(
-                  task: tasks[index],
-                  onTap: () => _navigateToDetails(context, tasks[index]),
-                  onToggleComplete: () {
-                    _toggleTaskCompletion(context, ref, tasks[index]);
-                  },
-                );
-              },
+
+            return ListView(
+              children: [
+                if (sortedTasks['past']!.isNotEmpty) ...[
+                  _buildSectionHeader("🔥 Overdue"),
+                  ...sortedTasks['past']!.map((task) => _buildTaskCard(context, task, ref)),
+                ],
+                if (sortedTasks['today']!.isNotEmpty) ...[
+                  _buildSectionHeader("🌟 Today"),
+                  ...sortedTasks['today']!.map((task) => _buildTaskCard(context, task, ref)),
+                ],
+                if (sortedTasks['tomorrow']!.isNotEmpty) ...[
+                  _buildSectionHeader("⏳ Tomorrow"),
+                  ...sortedTasks['tomorrow']!.map((task) => _buildTaskCard(context, task, ref)),
+                ],
+                if (sortedTasks['upcoming']!.isNotEmpty) ...[
+                  _buildSectionHeader("📅 Upcoming"),
+                  ...sortedTasks['upcoming']!.map((task) => _buildTaskCard(context, task, ref)),
+                ],
+              ],
             );
+
+
+            // return ListView.builder(
+            //   itemCount: tasks.length,
+            //   itemBuilder: (context, index) {
+            //     return TaskCard(
+            //       task: tasks[index],
+            //       onTap: () => _navigateToDetails(context, tasks[index]),
+            //       onToggleComplete: () {
+            //         _toggleTaskCompletion(context, ref, tasks[index]);
+            //       },
+            //     );
+            //   },
+            // );
+            //
+
+
           } else {
             return const SizedBox.shrink();
           }
@@ -73,13 +110,79 @@ class HomeScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _navigateToAddTask(context, ref),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text("Add Task"),
-        backgroundColor: Colors.blue,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        icon: const Icon(
+          Icons.add_rounded,
+          color: Colors.white,
+        ),
+        label: const Text(
+          "Add Task",
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.blue[700],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
+
+  Map<String, List<Task>> _sortTasksByDate(List<Task> tasks) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(Duration(days: 1));
+
+    final past = <Task>[];
+    final todayTasks = <Task>[];
+    final tomorrowTasks = <Task>[];
+    final upcoming = <Task>[];
+
+    for (var task in tasks) {
+      try {
+        final dueDate = DateFormat("dd-MM-yyyy").parse(task.dueDate);
+        if (dueDate.isBefore(today)) {
+          past.add(task);
+        } else if (dueDate.isAtSameMomentAs(today)) {
+          todayTasks.add(task);
+        } else if (dueDate.isAtSameMomentAs(tomorrow)) {
+          tomorrowTasks.add(task);
+        } else {
+          upcoming.add(task);
+        }
+      } catch (e) {
+        print("Error parsing date for task: ${task.id}, ${task.dueDate}");
+      }
+    }
+
+    return {
+      'past': past,
+      'today': todayTasks,
+      'tomorrow': tomorrowTasks,
+      'upcoming': upcoming,
+    };
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.blueAccent,
+        ),
+      ),
+    );
+  }
+  Widget _buildTaskCard(BuildContext context, Task task, WidgetRef ref) {
+    return TaskCard(
+      task: task,
+      onTap: () => _navigateToDetails(context, task),
+      onToggleComplete: () {
+        _toggleTaskCompletion(context, ref, task);
+      },
+    );
+  }
+
+
 
   void _navigateToDetails(BuildContext context, Task task) {
     Navigator.push(
@@ -94,11 +197,13 @@ class HomeScreen extends ConsumerWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AddTaskScreen(
-          onAddTask: (newTask) async {
-            await ref.read(taskNotifierProvider.notifier).addTask(newTask);
-          },
-        ),
+        builder: (context) =>
+            TaskFormScreen(isEdit: false),
+        //     AddTaskScreen(
+        //   onAddTask: (newTask) async {
+        //     await ref.read(taskNotifierProvider.notifier).addTask(newTask);
+        //   },
+        // ),
       ),
     );
   }
@@ -109,9 +214,10 @@ class HomeScreen extends ConsumerWidget {
     bool? isComplete = prefs.getBool(task.id) ?? task.isComplete;
     bool updatedState = !isComplete;
     await prefs.setBool(task.id, updatedState);
-    ref.read(taskNotifierProvider.notifier).updateTask(task.copyWith(isComplete: updatedState));
+    ref
+        .read(taskNotifierProvider.notifier)
+        .updateTask(task.copyWith(isComplete: updatedState));
   }
-
 
   Future<void> _showFilterDialog(BuildContext context, WidgetRef ref) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -122,47 +228,59 @@ class HomeScreen extends ConsumerWidget {
       builder: (context) {
         return AlertDialog(
           title: const Text("Filter Tasks"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: const Text("All"),
-                onTap: () async {
-                  await ref.read(taskNotifierProvider.notifier).setPriorityFilter('All');
-                  Navigator.pop(context);
-                },
-                selected: currentPriority == 'All',
-              ),
-              ListTile(
-                title: const Text("High Priority"),
-                onTap: () async {
-                  await ref.read(taskNotifierProvider.notifier).setPriorityFilter('High');
-                  Navigator.pop(context);
-                },
-                selected: currentPriority == 'High',
-              ),
-              ListTile(
-                title: const Text("Medium Priority"),
-                onTap: () async {
-                  await ref.read(taskNotifierProvider.notifier).setPriorityFilter('Medium');
-                  Navigator.pop(context);
-                },
-                selected: currentPriority == 'Medium',
-              ),
-              ListTile(
-                title: const Text("Low Priority"),
-                onTap: () async {
-                  await ref.read(taskNotifierProvider.notifier).setPriorityFilter('Low');
-                  Navigator.pop(context);
-                },
-                selected: currentPriority == 'Low',
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  selectedColor: primDB,
+                  title: const Text("All"),
+                  onTap: () async {
+                    await ref
+                        .read(taskNotifierProvider.notifier)
+                        .setPriorityFilter('All');
+                    Navigator.pop(context);
+                  },
+                  selected: currentPriority == 'All',
+                ),
+                ListTile(
+                  selectedColor: primDB,
+                  title: const Text("High Priority"),
+                  onTap: () async {
+                    await ref
+                        .read(taskNotifierProvider.notifier)
+                        .setPriorityFilter('High');
+                    Navigator.pop(context);
+                  },
+                  selected: currentPriority == 'High',
+                ),
+                ListTile(
+                  selectedColor: primDB,
+                  title: const Text("Medium Priority"),
+                  onTap: () async {
+                    await ref
+                        .read(taskNotifierProvider.notifier)
+                        .setPriorityFilter('Medium');
+                    Navigator.pop(context);
+                  },
+                  selected: currentPriority == 'Medium',
+                ),
+                ListTile(
+                  selectedColor: primDB,
+                  title: const Text("Low Priority"),
+                  onTap: () async {
+                    await ref
+                        .read(taskNotifierProvider.notifier)
+                        .setPriorityFilter('Low');
+                    Navigator.pop(context);
+                  },
+                  selected: currentPriority == 'Low',
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
-
-
 }

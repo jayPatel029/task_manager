@@ -1,3 +1,9 @@
+/*
+* curd opr for tsak
+* *
+* *filter based on prioriy
+* **/
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:task_manager_bloc/services/task/task_service.dart';
@@ -33,7 +39,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
 
    Future<List<Task>> _filterTasks(List<Task> tasks) async {
     if (selectedPriority == null || selectedPriority == 'All') {
-      return tasks; // If no filter or 'All' is selected, return all tasks
+      return tasks; //
     }
 
     tasks.sort((a, b) {
@@ -50,8 +56,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
     return tasks;
   }
 
-  /// Add a new task
-  Future<void> addTask(Task task) async {
+   Future<void> addTask(Task task) async {
     try {
       await taskService.addTask(task);
       await fetchTasks(); // Refresh task list
@@ -60,21 +65,19 @@ class TaskNotifier extends StateNotifier<TaskState> {
     }
   }
 
-  /// Update an existing task
-  Future<void> updateTask(Task task) async {
+   Future<void> updateTask(Task task) async {
     try {
       await taskService.updateTask(task);
-      await fetchTasks(); // Refresh task list
+      await fetchTasks(); //
     } catch (e) {
       state = TaskErrorState('Failed to update task: $e');
     }
   }
 
-  /// Delete a task by ID
-  Future<void> deleteTask(String taskId) async {
+   Future<void> deleteTask(String taskId) async {
     try {
       await taskService.deleteTask(taskId);
-      await fetchTasks(); // Refresh task list
+      await fetchTasks(); //
     } catch (e) {
       state = TaskErrorState('Failed to delete task: $e');
     }

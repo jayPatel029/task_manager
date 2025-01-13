@@ -15,7 +15,6 @@ class Task {
     this.isComplete = false,
   });
 
-  // Convert Task to Firestore Map
   Map<String, dynamic> toMap() {
     return {
       'title': title,
@@ -26,7 +25,6 @@ class Task {
     };
   }
 
-  // Convert Firestore Map to Task
   factory Task.fromMap(String id, Map<String, dynamic> map) {
     return Task(
       id: id,
@@ -38,7 +36,6 @@ class Task {
     );
   }
 
-  // CopyWith method to clone a Task with new values for specific fields
   Task copyWith({
     String? id,
     String? title,
@@ -57,7 +54,6 @@ class Task {
     );
   }
 
-  // toString method for easier debugging and logging
   @override
   String toString() {
     return 'Task(id: $id, title: $title, description: $description, dueDate: $dueDate, priority: $priority, isComplete: $isComplete)';

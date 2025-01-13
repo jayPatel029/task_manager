@@ -1,3 +1,11 @@
+/*
+* email pass,
+*
+* login with google,aple,fb
+* **/
+
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,7 +49,7 @@ class AuthScreen extends ConsumerWidget {
               Center(
                 child: Icon(
                   Icons.login_rounded,
-                  color: Color(0xFF676bF3),
+                  color: Colors.blue[600],
                   size: 100,
                 ),
               ),
@@ -64,7 +72,7 @@ class AuthScreen extends ConsumerWidget {
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF555555)),
+                    color: Color(0xFF004c6d)), // Blue for labels
               ),
               SizedBox(height: 8),
               Container(
@@ -93,7 +101,7 @@ class AuthScreen extends ConsumerWidget {
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF555555)),
+                    color: Color(0xFF004c6d)),
               ),
               SizedBox(height: 8),
               Container(
@@ -127,7 +135,7 @@ class AuthScreen extends ConsumerWidget {
                         .login(email, password);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF676bF3),
+                    backgroundColor: Colors.blue[600],
                     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                     textStyle: TextStyle(fontSize: 16, color: Colors.white),
                     shape: RoundedRectangleBorder(
@@ -136,37 +144,34 @@ class AuthScreen extends ConsumerWidget {
                   ),
                   child: authState is AuthLoading
                       ? CircularProgressIndicator(
-                    color: Colors.white,
-                  )
+                          color: Colors.white,
+                        )
                       : const Text(
-                    "Login",
-                    style: TextStyle(color: Colors.white),
-                  ),
+                          "Login",
+                          style: TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
                 ),
               ),
 
               // Error/Success Messages
               if (authState is AuthFailure)
-                ScaffoldMessenger(
+                Padding(
+                  padding: const EdgeInsets.only(top: 20.0),
                   child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 20.0),
-                      child: Text(
-                        "Failed to login",
-                        style: const TextStyle(color: Colors.red),
-                      ),
+                    child: Text(
+                      "Failed to login",
+                      style: const TextStyle(color: Colors.red),
                     ),
                   ),
                 ),
               if (authState is AuthSuccess)
-                ScaffoldMessenger(
+                Padding(
+                  padding: const EdgeInsets.only(top: 20.0),
                   child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 20.0),
-                      child: Text(
-                        'Welcome, ${emailCont.text}',
-                        style: const TextStyle(color: Colors.green),
-                      ),
+                    child: Text(
+                      'Welcome, ${emailCont.text}',
+                      style: const TextStyle(color: Colors.green),
                     ),
                   ),
                 ),

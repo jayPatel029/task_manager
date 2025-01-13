@@ -86,6 +86,7 @@ class _TextfieldHelperState extends State<TextfieldHelper> {
 
 Color primDB = Color(0xff004c6d);
 Color lightB = Color(0xFF1bc1c4);
+
 InputDecoration inpurdecorationTwo = InputDecoration(
   contentPadding: const EdgeInsets.symmetric(vertical: 10.5, horizontal: 12.0),
   fillColor: Colors.white,
@@ -118,60 +119,71 @@ class TaskCard extends StatelessWidget {
     Color priorityColor;
     switch (task.priority.toLowerCase()) {
       case 'high':
-        priorityColor = Colors.red;
+        priorityColor = Colors.redAccent;
         break;
       case 'medium':
-        priorityColor = Colors.orange;
+        priorityColor = Colors.orangeAccent;
         break;
       case 'low':
       default:
-        priorityColor = Colors.green;
+        priorityColor = Colors.greenAccent;
         break;
     }
 
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      elevation: 5,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.blue[50],
       child: ListTile(
-        contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         onTap: onTap,
         title: Text(
           task.title,
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 16,
+            fontSize: 18,
+            color: Colors.blue[800],
           ),
         ),
         subtitle: Text(
           task.description,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+          style: TextStyle(fontSize: 14, color: Colors.blueGrey[700]),
         ),
         trailing: Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 8,
+          spacing: 12,
           children: [
+            // Priority Badge
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: priorityColor.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 task.priority.toUpperCase(),
-                style: TextStyle(color: priorityColor, fontSize: 12),
+                style: TextStyle(
+                  color: priorityColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            IconButton(
-              icon: Icon(
-                task.isComplete
-                    ? Icons.check_circle
-                    : Icons.radio_button_unchecked,
-                color: task.isComplete ? Colors.green : Colors.grey,
+            // Completion Icon
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: IconButton(
+                key: ValueKey(task.isComplete),
+                icon: Icon(
+                  task.isComplete ? Icons.check_circle : Icons.radio_button_unchecked,
+                  color: task.isComplete ? Colors.green[600] : Colors.grey[600],
+                  size: 28,
+                ),
+                onPressed: onToggleComplete,
               ),
-              onPressed: onToggleComplete,
             ),
           ],
         ),

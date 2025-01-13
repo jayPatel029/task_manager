@@ -8,7 +8,6 @@ import 'package:task_manager_bloc/screens/auth/auth_screen.dart';
 import 'package:task_manager_bloc/screens/home/home_screen.dart';
 import 'package:task_manager_bloc/services/auth/auth_notifier.dart';
 import 'package:task_manager_bloc/services/auth/auth_state.dart';
-import 'package:task_manager_bloc/services/auth_service.dart';
 
 import 'firebase_options.dart';
 
@@ -32,7 +31,8 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          primaryColor: Colors.blue[600],
           useMaterial3: true,
         ),
         home: AuthGate(),
@@ -51,7 +51,7 @@ class AuthGate extends ConsumerWidget {
     if (authState is AuthSuccess) {
       return HomeScreen();
     } else {
-      return HomeScreen();
+      return AuthScreen();
     }
   }
 }
